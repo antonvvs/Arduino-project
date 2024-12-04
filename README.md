@@ -21,15 +21,59 @@ The main idea is to design a device that can measure different quantities (we we
 
 ## Hardware description
 
-**Measuring of  Temperature and Humidity:** 
+**Measuring of  Temperature and Humidity:** For measuring of temperature and humidity we are using DHT12 sensor https://github.com/tomas-fryza/avr-course/blob/master/docs/dht12_manual.pdf, DHT12 sensor measures:
+Temperature: Using a calibrated digital temperature sensing element.
+Humidity: Using a resistive-type humidity sensing component.
+The sensor outputs data in a digital format, either through: I2C communication protocol, or a single-wire communication protocol. The accuracy of a Temperature is ±0.5°C, accuracy of reltive humidity is ±5%
+The sensor communicates with a microcontroller (e.g., Arduino) via the I2C bus or single-wire communication, making it simple to integrate.
 
 
 
-**Measuring of light intensity:** 
+
+**Measuring of light intensity:** Photoresistor (light-dependent resistor, or LDR) is used to measure ambient light levels. The photoresistor's resistance changes based on the light intensity: higher resistance in darkness and lower resistance in bright light. This behavior allows the system to determine whether it is "day" or "night."The photoresistor is part of a voltage divider circuit, with one side connected to a fixed resistor and the other to a power source. The voltage across the fixed resistor changes based on the photoresistor's resistance and is fed into the ADC pin (channel 0).The microcontroller reads the voltage from the photoresistor circuit through its ADC. The ADC converts the analog voltage into a 10-bit digital value (0–1023), representing the light intensity.The system compares the digital value to the threshold (512) to determine if it is "Day" or "Night." This decision is output via the UART for user feedback.
+
+
+C syntax:
+
+``` c
+     // Determine if it is day or night based on light level
+            if (light_level > 512) {  // Adjust threshold as needed
+                uart_puts("Day\r\n");
+            } else {
+                uart_puts("Night\r\n");
+            }
+```
 
 
 
-**Measuring of Soil Moisture:** 
+**Measuring of Soil Moisture:** The Capacitive Soil Moisture Sensor v2.0 operates on the principle of measuring the dielectric permittivity of the soil, which varies with the soil's water content. The sensor has a flat capacitive surface coated with a non-corrosive material, ensuring durability in soil. This probe forms a capacitor with the soil acting as the dielectric material. The sensor's onboard circuit converts the capacitance (proportional to soil moisture) into a corresponding analog voltage. The sensor outputs a voltage signal between 0V and the operating voltage (usually 3.3V or 5V), proportional to the soil's moisture level. 
+Capacitance depends on the dielectric constant of the material between the plates. Water has a high dielectric constant compared to air or dry soil.As soil moisture increases, the dielectric constant rises, increasing the capacitance of the probe. The sensor's circuitry converts this change in capacitance into an analog voltage. Higher soil moisture results in a higher output voltage (or sometimes lower, depending on calibration). The analog voltage is fed into a microcontroller (e.g., Arduino) via an analog input pin. The microcontroller reads the voltage and maps it to a soil moisture level, often as a percentage.
+
+C syntax:
+``` c
+// Read soil moisture level
+moisture_level = adc_read(1);  // Soil sensor on ADC channel 1
+
+// Interpret moisture level
+if (moisture_level > 500) {
+    moisture_status = "senzor mimo půdu";  // Sensor not in soil
+} else if (moisture_level > 260) {
+    moisture_status = "suché";  // Dry soil
+} else {
+    moisture_status = "zalito";  // Moist soil
+}
+
+// Trigger action if soil is dry
+if (moisture_level >= 300) {
+    uart_puts("zalit\n");
+    open_window();  // Example action
+}
+
+// Output soil moisture status
+uart_puts("vhlkost půdy: ");
+uart_puts(moisture_status);
+uart_puts("\r\n");
+```
 
  
 
