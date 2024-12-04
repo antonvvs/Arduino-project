@@ -27,6 +27,7 @@ Humidity: Using a resistive-type humidity sensing component.
 The sensor outputs data in a digital format, either through: I2C communication protocol, or a single-wire communication protocol. The accuracy of a Temperature is ±0.5°C, accuracy of reltive humidity is ±5% The sensor communicates with a microcontroller (e.g., Arduino) via the I2C bus or single-wire communication, making it simple to integrate.
 
 C syntax
+
 The TIMER1_OVF_vect interrupt is used to periodically read data from the DHT12 sensor every second:
 ```c
 ISR(TIMER1_OVF_vect) {
