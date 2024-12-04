@@ -24,9 +24,66 @@ The main idea is to design a device that can measure different quantities (we we
 **Measuring of  Temperature and Humidity:** For measuring of temperature and humidity we are using DHT12 sensor https://github.com/tomas-fryza/avr-course/blob/master/docs/dht12_manual.pdf, DHT12 sensor measures:
 Temperature: Using a calibrated digital temperature sensing element.
 Humidity: Using a resistive-type humidity sensing component.
-The sensor outputs data in a digital format, either through: I2C communication protocol, or a single-wire communication protocol. The accuracy of a Temperature is ±0.5°C, accuracy of reltive humidity is ±5%
-The sensor communicates with a microcontroller (e.g., Arduino) via the I2C bus or single-wire communication, making it simple to integrate.
+The sensor outputs data in a digital format, either through: I2C communication protocol, or a single-wire communication protocol. The accuracy of a Temperature is ±0.5°C, accuracy of reltive humidity is ±5% The sensor communicates with a microcontroller (e.g., Arduino) via the I2C bus or single-wire communication, making it simple to integrate.
 
+C syntax
+The TIMER1_OVF_vect interrupt is used to periodically read data from the DHT12 sensor every second:
+```c
+ISR(TIMER1_OVF_vect) {
+    twi_start();
+    if (twi_write((SENSOR_ADR << 1) | TWI_WRITE) == 0) {
+        // Set memory location for temperature
+        twi_write(SENSOR_TEMP_MEM);
+        twi_stop();
+        // Read temperature data
+        twi_start();
+        twi_write((SENSOR_ADR << 1) | TWI_READ);
+        dht12.temp_int = twi_read(TWI_ACK);
+        dht12.temp_dec = twi_read(TWI_NACK);
+
+        // Set memory location for humidity
+        twi_start();
+        twi_write((SENSOR_ADR << 1) | TWI_WRITE);
+        twi_write(SENSOR_HUM_MEM);
+        twi_stop();
+        // Read humidity data
+        twi_start();
+        twi_write((SENSOR_ADR << 1) | TWI_READ);
+        dht12.hum_int = twi_read(TWI_ACK);
+        dht12.hum_dec = twi_read(TWI_NACK);
+
+        new_sensor_data = 1;  // Flag indicating new data is available
+    }
+    twi_stop();
+}
+```
+In the main loop, once new data is available (new_sensor_data == 1), the temperature and humidity values are formatted and sent to the UART for display:
+
+``` c
+if (new_sensor_data == 1) {
+    char string[10];  // Buffer for formatting numbers
+
+    // Temperature
+    itoa(dht12.temp_int, string, 10);  // Convert integer part to string
+    uart_puts("teplota vzduchu: ");
+    uart_puts(string);
+    uart_puts(".");
+    itoa(dht12.temp_dec, string, 10);  // Convert decimal part to string
+    uart_puts(string);
+    uart_puts(" °C\r\n");
+
+    // Humidity
+    itoa(dht12.hum_int, string, 10);
+    uart_puts("vhlkost vzduchu: ");
+    uart_puts(string);
+    uart_puts(".");
+    itoa(dht12.hum_dec, string, 10);
+    uart_puts(string);
+    uart_puts(" %\r\n");
+
+    new_sensor_data = 0;  // Reset flag
+}
+```
 
 
 
