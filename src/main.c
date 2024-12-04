@@ -1,3 +1,4 @@
+
 /***********************************************************************
  * 
  * The I2C (TWI) bus scanner tests all addresses and detects devices
@@ -69,6 +70,7 @@ volatile uint8_t new_sensor_data = 0;
 /* Function prototypes -----------------------------------------------*/
 void adc_init(void);
 uint16_t adc_read(uint8_t channel);
+void open_window(void);
 
 
 /**********************************************************************
@@ -99,6 +101,16 @@ uint16_t adc_read(uint8_t channel)
     // Return the ADC value
     return ADC;
 }
+
+/**********************************************************************
+* Function: Open window
+* Purpose:  Control the mechanism to open the window.
+**********************************************************************/
+void open_window(void) {
+    // Code to open the window, for example, setting a pin high
+    // Adjust the code based on your hardware setup
+    PORTB |= (1 << PB0);
+}
 // -- Function definitions -------------------------------------------
 
 /* Function definitions ----------------------------------------------*/
@@ -112,9 +124,10 @@ uint16_t adc_read(uint8_t channel)
 
 int main(void)
 {
-    char string[2];  // String for converting numbers by itoa()
+    char string[10];  // String for converting numbers by itoa()
     uint16_t light_level;  // Variable for light level
-
+    uint16_t moisture_level;  // Variable for soil moisture level
+    const char *moisture_status;  // Variable for soil moisture status
     // Initialize ADC
     adc_init();
 
@@ -146,14 +159,38 @@ int main(void)
             // Read photoresistor value
             light_level = adc_read(0);  // Read the light level from ADC channel 0
 
-            // Determine if it is day or night based on light level
-            if (light_level > 512) {  // Adjust threshold as needed
-                uart_puts("Day\r\n");
+            // detekce svetelneho mnoztvi
+            if (light_level > 482) {  // Adjust threshold as needed
+                uart_puts("Den\r\n");
             } else {
-                uart_puts("Night\r\n");
+                uart_puts("Noc\r\n");
+            }
+             // Read soil moisture level
+            moisture_level = adc_read(1);  // Read the soil moisture level from ADC channel 1
+
+            // pudni senzor nastaveni
+            if (moisture_level > 500) {
+                moisture_status = "senzor mimo půdu";
+            } else if (moisture_level > 260) {
+                moisture_status = "suché";
+            } else {
+                moisture_status = "zalito";
             }
 
+            // otevření okna procenta
+            if (moisture_level >= 300) {
+                uart_puts("zalit\n");
+                open_window();
+            }
+
+            
+            uart_puts("vhlkost půdy: ");
+            uart_puts(moisture_status);
+            uart_puts("\r\n");
+
+
             itoa(dht12.temp_int, string, 10);
+            uart_puts("teplota vzduchu: ");
             uart_puts(string);
             uart_puts(".");
             itoa(dht12.temp_dec, string, 10);
@@ -161,6 +198,7 @@ int main(void)
             uart_puts(" °C\r\n");
 
             itoa(dht12.hum_int, string, 10);
+            uart_puts("vhlkost vzduchu: ");
             uart_puts(string);
             uart_puts(".");
             itoa(dht12.hum_dec, string, 10);
