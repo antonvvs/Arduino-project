@@ -80,6 +80,7 @@ uart_puts("\r\n");
 
 
 
+![image](https://github.com/user-attachments/assets/9c7375d4-d508-46bc-a350-1ba04994612a)
 
 ## Accuracy issues
 
