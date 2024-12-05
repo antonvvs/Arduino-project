@@ -147,7 +147,35 @@ However, there are some accuracy problems that we have detected during the proje
 
 
 ## Software description
+
+Regarding other used libraries, we used timer.h (for timers and interruptions), gpio (pins management), oled (OLED display functions), twi (library needed for OLED display).
+
 The system reads environmental data from sensors connected via I2C and ADC. The data includes temperature, humidity, light intensity, and soil moisture.
+
+
+Also, there are some parameters, that can be defined by a user:
+Light Level Threshold:
+
+Variable: 700 in if (light_level > 700)
+Purpose: Sets the boundary for distinguishing between day and night.
+Default Value: 700 (ADC reading).
+```c
+#define LIGHT_THRESHOLD 700
+if (light_level > LIGHT_THRESHOLD) { ... }
+```
+Soil Moisture Levels:
+
+Variables: 500 and 260 in:
+```C
+if (moisture_level > 500) {
+    moisture_status = "Out";
+} else if (moisture_level > 260) {
+    moisture_status = "Dry";
+} else {
+    moisture_status = "Wet";
+}
+```
+By using these user-definable parameters, the system becomes highly flexible and adaptable.
 
 Code Example: Reading ADC Values (Light and Soil Moisture Sensors)
 
