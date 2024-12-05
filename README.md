@@ -1,6 +1,6 @@
 # Project in C
 
-Topic: Measuring Electricity for Arduino Uno
+Topic: Measurement/Control/Visualization of the environment for tropical plants for Arduino Uno
 
 ### Team members
 
