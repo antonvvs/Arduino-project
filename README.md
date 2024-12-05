@@ -61,28 +61,115 @@ ISR(TIMER1_OVF_vect) {
 In the main loop, once new data is available (new_sensor_data == 1), the temperature and humidity values are formatted and sent to the UART for display:
 
 ``` c
-if (new_sensor_data == 1) {
-    char string[10];  // Buffer for formatting numbers
+int main(void)
+{
+    char oled_msg[20];
+    uint16_t light_level;  // Variable for light level
+    uint16_t moisture_level;  // Variable for soil moisture level
+    const char *moisture_status;  // Variable for soil moisture status
 
-    // Temperature
-    itoa(dht12.temp_int, string, 10);  // Convert integer part to string
-    uart_puts("teplota vzduchu: ");
-    uart_puts(string);
-    uart_puts(".");
-    itoa(dht12.temp_dec, string, 10);  // Convert decimal part to string
-    uart_puts(string);
-    uart_puts(" °C\r\n");
+    // Initialize ADC
+    adc_init();
 
-    // Humidity
-    itoa(dht12.hum_int, string, 10);
-    uart_puts("vhlkost vzduchu: ");
-    uart_puts(string);
-    uart_puts(".");
-    itoa(dht12.hum_dec, string, 10);
-    uart_puts(string);
-    uart_puts(" %\r\n");
+    // TWI
+    twi_init();
 
-    new_sensor_data = 0;  // Reset flag
+    // UART
+    uart_init(UART_BAUD_SELECT(115200, F_CPU));
+
+    // OLED setup
+    oled_setup();
+
+    // Timer1
+    timer1_init();
+
+    sei();
+
+```
+
+
+The main controling setup for oparating OLED display.
+
+```c
+    // Infinite loop
+    while (1)
+    {
+        if (flag_update_oled == 1)
+        {
+            // Read photoresistor value
+            light_level = adc_read(0);  // Read the light level from ADC channel 0
+            
+            // Light level detection (highet value means day)
+            oled_gotoxy(14, 2);
+            if (light_level > 700) {  
+                sprintf(oled_msg, "Den ");
+            } else {
+                sprintf(oled_msg, "Noc");
+            }
+            oled_puts(oled_msg);
+            
+    
+
+            // Read soil moisture level
+            moisture_level = adc_read(1);  
+
+            // Soil moisture status
+            oled_gotoxy(14, 3);
+            if (moisture_level > 500) { 
+                moisture_status = "Out ";
+            } else if (moisture_level > 260) {
+                moisture_status = "Dry";
+            } else {
+                moisture_status = "Wet";
+            }
+            oled_puts(moisture_status);
+
+            // Air temperature
+            oled_gotoxy(14, 4);
+            sprintf(oled_msg, "%u.%u C", dht12.temp_int, dht12.temp_dec);
+            oled_puts(oled_msg);
+
+            
+
+            // Air humidity
+            oled_gotoxy(14, 5);
+            sprintf(oled_msg, "%u.%u %%", dht12.hum_int, dht12.hum_dec);
+            oled_puts(oled_msg);
+
+            // Watering status
+            oled_gotoxy(14, 6);
+            if (moisture_level >= 300) {
+                sprintf(oled_msg, "Zalij  ");
+                open_window();
+            } else {
+                sprintf(oled_msg, "Zalito");
+            }
+            oled_puts(oled_msg);
+
+            // open window
+             oled_gotoxy(5, 7);
+            if ((dht12.hum_int ) > 20) {
+                open_window();
+                sprintf(oled_msg, "Okno otevreno");
+                GPIO_write_high(&PORTB, HUM);
+            } else {
+                sprintf(oled_msg, "Okno zavreno ");
+                GPIO_write_low(&PORTB, HUM);
+            }
+            oled_puts(oled_msg);
+
+            // Update OLED display
+            oled_display();
+
+            // Reset flag
+            flag_update_oled = 0;
+        }
+    }
+
+    
+    return 0;
+}
+
 }
 ```
 
