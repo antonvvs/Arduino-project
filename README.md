@@ -181,12 +181,14 @@ The main controling setup for oparating OLED display.
 C syntax:
 
 ``` c
-     // Determine if it is day or night based on light level
-            if (light_level > 512) {  // Adjust threshold as needed
-                uart_puts("Day\r\n");
+// Light level detection (highet value means day)
+            oled_gotoxy(14, 2);
+            if (light_level > 700) {  
+                sprintf(oled_msg, "Den ");
             } else {
-                uart_puts("Night\r\n");
+                sprintf(oled_msg, "Noc");
             }
+            oled_puts(oled_msg);
 ```
 
 
@@ -197,27 +199,19 @@ Capacitance depends on the dielectric constant of the material between the plate
 C syntax:
 ``` c
 // Read soil moisture level
-moisture_level = adc_read(1);  // Soil sensor on ADC channel 1
+            moisture_level = adc_read(1);  
 
-// Interpret moisture level
-if (moisture_level > 500) {
-    moisture_status = "senzor mimo půdu";  // Sensor not in soil
-} else if (moisture_level > 260) {
-    moisture_status = "suché";  // Dry soil
-} else {
-    moisture_status = "zalito";  // Moist soil
-}
+            // Soil moisture status
+            oled_gotoxy(14, 3);
+            if (moisture_level > 500) { 
+                moisture_status = "Out ";
+            } else if (moisture_level > 260) {
+                moisture_status = "Dry";
+            } else {
+                moisture_status = "Wet";
+            }
+            oled_puts(moisture_status);
 
-// Trigger action if soil is dry
-if (moisture_level >= 300) {
-    uart_puts("zalit\n");
-    open_window();  // Example action
-}
-
-// Output soil moisture status
-uart_puts("vhlkost půdy: ");
-uart_puts(moisture_status);
-uart_puts("\r\n");
 ```
 
  
@@ -226,11 +220,6 @@ uart_puts("\r\n");
 Our final proposed design looks as follows:
 
 ![image](https://github.com/user-attachments/assets/2af4d7d3-4ab3-453f-b176-6a65d8c23253)
-
-
-## Accuracy issues
-
-However, there are some accuracy problems that we have detected during the project:
 
 
 
@@ -302,37 +291,41 @@ void oled_setup(void) {
     oled_display(); // Copy buffer to OLED RAM
 }
 
-char oled_msg[20]; // Buffer for dynamic messages
 
-// Display dynamic data
-oled_gotoxy(14, 2);
-sprintf(oled_msg, light_level > 700 ? "Day " : "Night");
-oled_puts(oled_msg);
-
-oled_gotoxy(14, 3);
-sprintf(oled_msg, moisture_level > 500 ? "Out" : moisture_level > 260 ? "Dry" : "Wet");
-oled_puts(oled_msg);
 ```
 The system triggers an action (like opening a window) based on soil moisture level.
 
 Code Example: Window Control
 
 ```c
+#include <gpio.h>
+#define HUM PB0
+// open window command(now diode)
 void open_window(void) {
-    PORTB |= (1 << PB0); // Activate relay or servo for window opening
+    GPIO_mode_output(&DDRB, HUM);
+    GPIO_write_low(&PORTB, HUM);
 }
 
-oled_gotoxy(14, 6);
-if (moisture_level >= 300) {
-    sprintf(oled_msg, "DRY");
-    open_window(); // Trigger window opening
-} else {
-    sprintf(oled_msg, "WET");
-}
-oled_puts(oled_msg);
+```
+This function controls a window based on the humidity level and updates the OLED display with the current window status.
+If the humidity is greater than 20%: Opens the window by calling open_window().
+```c
+ // open window
+             oled_gotoxy(5, 7);
+            if ((dht12.hum_int ) > 20) {
+                open_window();
+                sprintf(oled_msg, "Okno otevreno");
+                GPIO_write_high(&PORTB, HUM);
+            } else {
+                sprintf(oled_msg, "Okno zavreno ");
+                GPIO_write_low(&PORTB, HUM);
+            }
+            oled_puts(oled_msg);
+
+            // Update OLED display
+            oled_display();
 ```
 A timer interrupt updates the sensor data periodically (every 2 seconds).
-
 Code Example: Timer Initialization and ISR
 
 ```c
@@ -345,10 +338,12 @@ void timer1_init(void) {
 ISR(TIMER1_OVF_vect) {
     static uint8_t n_ovfs = 0;
     n_ovfs++;
-    if (n_ovfs >= 2) { // 2 seconds interval
+    // Read the data every 2 secs
+    if (n_ovfs >= 2)
+    {
         n_ovfs = 0;
-        flag_update_oled = 1; // Set flag for OLED update
-    }
+        twi_readfrom_mem_into(DHT_ADR, DHT_HUM_MEM, dht12_values, 5);
+        flag_update_oled = 1;
 }
 ```
 Here the block diagram of the whole process is presented:
