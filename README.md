@@ -286,4 +286,7 @@ https://youtube.com/shorts/UCZmiW_cysA?feature=share
 
 1. Microchip Techbology Inc. [ATmega328P datasheet](https://www.microchip.com/en-us/product/ATmega328p)
 2. Soil moisture sensor. [datasheet](https://tutorials.probots.co.in/using-soil-moisture-sensor-capacitive-v2-0-module-for-arduino/)
-3. Tomas Fryza. [Useful Git commands](https://github.com/tomas-fryza/digital-electronics-2/wiki/Useful-Git-commands)
+3. I2C humidity and temperature sensor. [datasheet](https://github.com/tomas-fryza/avr-course/blob/master/docs/dht12_manual.pdf)
+4. Fritzing. [web](https://fritzing.org/)
+5. Arduino Uno board.[shematic](https://oshwlab.com/tomas.fryza/arduino-shields)
+6. Tomas Fryza. [Useful Git commands](https://github.com/tomas-fryza/digital-electronics-2/wiki/Useful-Git-commands)
