@@ -16,7 +16,7 @@
 #include <stdio.h>          // C library for `sprintf`
 #include <uart.h>           // Peter Fleury's UART library
 #include <stdlib.h>         // C library. Needed for number conversions
-
+#include <gpio.h>
 // -- Defines --------------------------------------------------------
 #define DHT_ADR 0x5c
 #define DHT_HUM_MEM 0
@@ -47,7 +47,7 @@ volatile uint8_t new_sensor_data = 0;
 #define SENSOR_HUM_MEM 0
 #define SENSOR_TEMP_MEM 2
 #define SENSOR_CHECKSUM 4
-
+#define HUM PB0
 // -- Function definitions -------------------------------------------
 void oled_setup(void)
 {
@@ -101,8 +101,8 @@ uint16_t adc_read(uint8_t channel)
 }
 // open window command(now diode)
 void open_window(void) {
-    
-    PORTB |= (1 << PB0);
+    GPIO_mode_output(&DDRB, HUM);
+    GPIO_write_low(&PORTB, HUM);
 }
 
 int main(void)
@@ -180,20 +180,22 @@ int main(void)
             // Watering status
             oled_gotoxy(14, 6);
             if (moisture_level >= 300) {
-                sprintf(oled_msg, "DRY");
+                sprintf(oled_msg, "Zalij  ");
                 open_window();
             } else {
-                sprintf(oled_msg, "WET");
+                sprintf(oled_msg, "Zalito");
             }
             oled_puts(oled_msg);
 
             // open window
              oled_gotoxy(5, 7);
-            if ((dht12.hum_int ) > 40) {
+            if ((dht12.hum_int ) > 20) {
                 open_window();
                 sprintf(oled_msg, "Okno otevreno");
+                GPIO_write_high(&PORTB, HUM);
             } else {
-                sprintf(oled_msg, "Okno zavreno");
+                sprintf(oled_msg, "Okno zavreno ");
+                GPIO_write_low(&PORTB, HUM);
             }
             oled_puts(oled_msg);
 
