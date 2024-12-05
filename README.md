@@ -267,8 +267,11 @@ Here the block diagram of the whole process is presented:
 ![image](https://github.com/user-attachments/assets/389b4c55-8b86-40f6-928b-cee158d0d83f)
 
 Input: User configuration → Sensors (Light, Soil Moisture, DHT12).
+
 Processing: Microcontroller processes inputs using ADC, I2C, and timer interrupts.
+
 Output: Data displayed on OLED and actions (e.g., window opening) triggered based on conditions.
+
 Loop: The system operates in an infinite loop with periodic updates from the timer.
 
 
