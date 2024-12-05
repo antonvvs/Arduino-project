@@ -99,7 +99,7 @@ uint16_t adc_read(uint8_t channel)
     // Return the ADC value
     return ADC;
 }
-// příprava na servo pro otevření okna
+// open window command(now diode)
 void open_window(void) {
     
     PORTB |= (1 << PB0);
@@ -170,6 +170,8 @@ int main(void)
             sprintf(oled_msg, "%u.%u C", dht12.temp_int, dht12.temp_dec);
             oled_puts(oled_msg);
 
+            
+
             // Air humidity
             oled_gotoxy(14, 5);
             sprintf(oled_msg, "%u.%u %%", dht12.hum_int, dht12.hum_dec);
@@ -182,6 +184,16 @@ int main(void)
                 open_window();
             } else {
                 sprintf(oled_msg, "WET");
+            }
+            oled_puts(oled_msg);
+
+            // open window
+             oled_gotoxy(5, 7);
+            if ((dht12.hum_int ) > 40) {
+                open_window();
+                sprintf(oled_msg, "Okno otevreno");
+            } else {
+                sprintf(oled_msg, "Okno zavreno");
             }
             oled_puts(oled_msg);
 
