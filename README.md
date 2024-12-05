@@ -5,7 +5,7 @@ Topic: Measuring Electricity for Arduino Uno
 ### Team members
 
 * Jan Brokeš (responsible for debugging, C programming)
-* Anton Tsyhanov (responsible for documentation, Github design, software description nd hardware description)
+* Anton Tsyhanov (responsible for documentation, Github design, software and hardware description)
 
 ## Theoretical description and explanation
 
@@ -285,5 +285,5 @@ https://youtube.com/shorts/UCZmiW_cysA?feature=share
 ## References
 
 1. Microchip Techbology Inc. [ATmega328P datasheet](https://www.microchip.com/en-us/product/ATmega328p)
-
-5. Tomas Fryza. [Useful Git commands](https://github.com/tomas-fryza/digital-electronics-2/wiki/Useful-Git-commands)
+2. Soil moisture sensor. [datasheet](https://tutorials.probots.co.in/using-soil-moisture-sensor-capacitive-v2-0-module-for-arduino/)
+3. Tomas Fryza. [Useful Git commands](https://github.com/tomas-fryza/digital-electronics-2/wiki/Useful-Git-commands)
