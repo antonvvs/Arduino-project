@@ -147,8 +147,94 @@ However, there are some accuracy problems that we have detected during the proje
 
 
 ## Software description
+The system reads environmental data from sensors connected via I2C and ADC. The data includes temperature, humidity, light intensity, and soil moisture.
 
+Code Example: Reading ADC Values (Light and Soil Moisture Sensors)
 
+```c
+uint16_t adc_read(uint8_t channel) {
+    // Select the ADC channel
+    ADMUX = (ADMUX & 0xF0) | (channel & 0x0F);
+    // Start the conversion
+    ADCSRA |= (1 << ADSC);
+    // Wait for the conversion to complete
+    while (ADCSRA & (1 << ADSC));
+    return ADC; // Return the ADC value
+}
+
+uint16_t light_level = adc_read(0);  // Light sensor on ADC channel 0
+uint16_t moisture_level = adc_read(1);  // Soil moisture sensor o
+```
+
+The system displays the acquired data on an OLED screen using the OLED library.
+
+Code Example: OLED Setup and Display
+``` c
+void oled_setup(void) {
+    oled_init(OLED_DISP_ON); // Initialize OLED display
+    oled_clrscr(); // Clear the screen
+
+    oled_charMode(DOUBLESIZE);
+    oled_puts("KYTKA DATA"); // Display header text
+
+    oled_charMode(NORMALSIZE);
+    oled_gotoxy(0, 2); oled_puts("Light: ");
+    oled_gotoxy(0, 3); oled_puts("Soil Moisture: ");
+    oled_gotoxy(0, 4); oled_puts("Air Temp: ");
+    oled_gotoxy(0, 5); oled_puts("Air Humidity: ");
+    oled_gotoxy(0, 6); oled_puts("Status: ");
+    oled_display(); // Copy buffer to OLED RAM
+}
+
+char oled_msg[20]; // Buffer for dynamic messages
+
+// Display dynamic data
+oled_gotoxy(14, 2);
+sprintf(oled_msg, light_level > 700 ? "Day " : "Night");
+oled_puts(oled_msg);
+
+oled_gotoxy(14, 3);
+sprintf(oled_msg, moisture_level > 500 ? "Out" : moisture_level > 260 ? "Dry" : "Wet");
+oled_puts(oled_msg);
+```
+The system triggers an action (like opening a window) based on soil moisture level.
+
+Code Example: Window Control
+
+```c
+void open_window(void) {
+    PORTB |= (1 << PB0); // Activate relay or servo for window opening
+}
+
+oled_gotoxy(14, 6);
+if (moisture_level >= 300) {
+    sprintf(oled_msg, "DRY");
+    open_window(); // Trigger window opening
+} else {
+    sprintf(oled_msg, "WET");
+}
+oled_puts(oled_msg);
+```
+A timer interrupt updates the sensor data periodically (every 2 seconds).
+
+Code Example: Timer Initialization and ISR
+
+```c
+
+void timer1_init(void) {
+    TIM1_overflow_1s(); // Set overflow period to 1 second
+    TIM1_overflow_interrupt_enable(); // Enable overflow interrupt
+}
+
+ISR(TIMER1_OVF_vect) {
+    static uint8_t n_ovfs = 0;
+    n_ovfs++;
+    if (n_ovfs >= 2) { // 2 seconds interval
+        n_ovfs = 0;
+        flag_update_oled = 1; // Set flag for OLED update
+    }
+}
+```
 ## Instructions
 
 
